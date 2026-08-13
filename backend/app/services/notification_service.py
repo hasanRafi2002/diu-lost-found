@@ -11,6 +11,13 @@ def create_notification(
     notification_type: NotificationType = NotificationType.SYSTEM,
     target_url: str | None = None,
 ) -> Notification:
+    """
+    Adds a notification to the current session WITHOUT committing.
+    The caller is responsible for committing as part of its own
+    transaction. This keeps notification creation atomic with
+    whatever action triggered it (approve/reject/submit), instead
+    of creating partial-commit bugs.
+    """
     notif = Notification(
         user_id=user_id,
         title=title,
@@ -19,8 +26,7 @@ def create_notification(
         target_url=target_url,
     )
     db.add(notif)
-    db.commit()
-    db.refresh(notif)
+    db.flush()  # assigns notif.id without committing the transaction
     return notif
 
 

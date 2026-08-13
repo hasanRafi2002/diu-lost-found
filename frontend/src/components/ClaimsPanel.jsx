@@ -9,17 +9,35 @@ const STATUS_STYLES = {
   CANCELLED: "bg-gray-100 text-gray-400",
 };
 
-export default function ClaimsPanel({ claims, onChanged }) {
+const COPY = {
+  FOUND: {
+    panelTitle: "Claims on this item",
+    approveConfirm: (name) =>
+      `Confirm ${name} is the true owner? This resolves the item and rejects other pending claims.`,
+    approveToast: "Claim approved — item marked resolved",
+    approveLabel: "Approve",
+    rejectLabel: "Reject",
+  },
+  LOST: {
+    panelTitle: "People who say they found this",
+    approveConfirm: (name) =>
+      `Confirm ${name} found your item? This resolves the item, notifies them, and rejects other responses.`,
+    approveToast: "Confirmed — item marked resolved, finder notified",
+    approveLabel: "Confirm & Resolve",
+    rejectLabel: "Not a Match",
+  },
+};
+
+export default function ClaimsPanel({ claims, itemType, onChanged }) {
+  const copy = COPY[itemType] || COPY.FOUND;
   const [busyId, setBusyId] = useState(null);
 
   async function handleApprove(claim) {
-    if (!window.confirm(`Approve ${claim.claimant.full_name}'s claim? This resolves the item and rejects other pending claims.`)) {
-      return;
-    }
+    if (!window.confirm(copy.approveConfirm(claim.claimant.full_name))) return;
     setBusyId(claim.id);
     try {
       await approveClaim(claim.id);
-      toast.success("Claim approved, item marked resolved");
+      toast.success(copy.approveToast);
       onChanged?.();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Failed to approve");
@@ -32,7 +50,7 @@ export default function ClaimsPanel({ claims, onChanged }) {
     setBusyId(claim.id);
     try {
       await rejectClaim(claim.id);
-      toast.success("Claim rejected");
+      toast.success("Marked as not a match");
       onChanged?.();
     } catch (err) {
       toast.error(err.response?.data?.detail || "Failed to reject");
@@ -42,7 +60,7 @@ export default function ClaimsPanel({ claims, onChanged }) {
   }
 
   if (claims.length === 0) {
-    return <p className="text-gray-400 text-sm">No claims submitted yet.</p>;
+    return <p className="text-gray-400 text-sm">Nothing submitted yet.</p>;
   }
 
   return (
@@ -58,7 +76,7 @@ export default function ClaimsPanel({ claims, onChanged }) {
 
           <p className="text-sm text-gray-600">{claim.message}</p>
           {claim.proof_text && (
-            <p className="text-sm text-gray-500 mt-1 italic">Proof: {claim.proof_text}</p>
+            <p className="text-sm text-gray-500 mt-1 italic">{claim.proof_text}</p>
           )}
 
           {claim.status === "APPROVED" && (
@@ -75,14 +93,14 @@ export default function ClaimsPanel({ claims, onChanged }) {
                 disabled={busyId === claim.id}
                 className="bg-green-600 text-white px-3 py-1.5 rounded-md text-xs font-medium hover:bg-green-700 disabled:opacity-50"
               >
-                Approve
+                {copy.approveLabel}
               </button>
               <button
                 onClick={() => handleReject(claim)}
                 disabled={busyId === claim.id}
                 className="bg-red-50 text-red-600 px-3 py-1.5 rounded-md text-xs font-medium hover:bg-red-100 disabled:opacity-50"
               >
-                Reject
+                {copy.rejectLabel}
               </button>
             </div>
           )}

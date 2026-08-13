@@ -153,11 +153,15 @@ export default function ItemDetails() {
             </div>
           )}
 
+
+
           {!isOwner && isAuthenticated && item.status === "ACTIVE" && (
             <div className="mt-8 pt-6 border-t border-gray-100">
-              <ClaimForm itemId={item.id} onSubmitted={refreshAfterClaimChange} />
+              <ClaimForm itemId={item.id} itemType={item.item_type} onSubmitted={refreshAfterClaimChange} />
             </div>
           )}
+
+
 
           {!isAuthenticated && item.status === "ACTIVE" && (
             <div className="mt-8 pt-6 border-t border-gray-100 text-sm text-gray-500">
@@ -167,12 +171,18 @@ export default function ItemDetails() {
         </div>
       </div>
 
+
       {isOwner && (
         <div className="mt-6">
-          <h2 className="font-semibold text-gray-800 mb-3">Claims on this item</h2>
-          <ClaimsPanel claims={claims} onChanged={refreshAfterClaimChange} />
+          <h2 className="font-semibold text-gray-800 mb-3">
+            {item.item_type === "LOST" ? "People who say they found this" : "Claims on this item"}
+          </h2>
+          <ClaimsPanel claims={claims} itemType={item.item_type} onChanged={refreshAfterClaimChange} />
         </div>
       )}
+
+
+
     </div>
   );
 }

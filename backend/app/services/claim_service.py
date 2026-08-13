@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 from datetime import datetime
 
 from app.models.claim import Claim, ClaimStatus
-from app.models.item import Item, ItemStatus
+from app.models.item import Item, ItemType, ItemStatus
 from app.models.user import User
 from app.schemas.claim import ClaimCreate
 from app.services.item_service import get_item_or_404
@@ -53,11 +53,13 @@ def submit_claim(db: Session, item_id: int, claim_in: ClaimCreate, current_user:
     db.commit()
     db.refresh(claim)
 
+
+    verb = "found your lost item" if item.item_type == ItemType.LOST else "submitted a claim on your found item"
     create_notification(
         db,
         user_id=item.user_id,
-        title="New claim on your item",
-        message=f"{current_user.full_name} submitted a claim on '{item.title}'",
+        title="New response on your item" if item.item_type == ItemType.LOST else "New claim on your item",
+        message=f"{current_user.full_name} {verb} '{item.title}'",
         notification_type=NotificationType.CLAIM,
         target_url=f"/items/{item.id}",
     )
@@ -131,14 +133,15 @@ def approve_claim(db: Session, claim_id: int, current_user: User) -> Claim:
 
 
 
+    verb = "was confirmed" if item.item_type == ItemType.LOST else "was approved"
     create_notification(
-            db,
-            user_id=other.claimant_id,
-            title="Your claim was rejected",
-            message=f"Your claim on '{item.title}' was not approved — another claim was accepted.",
-            notification_type=NotificationType.CLAIM,
-            target_url=f"/items/{item.id}",
-        )
+        db,
+        user_id=claim.claimant_id,
+        title="Your response was confirmed" if item.item_type == ItemType.LOST else "Your claim was approved",
+        message=f"Your submission on '{item.title}' {verb}. You can now contact the reporter.",
+        notification_type=NotificationType.CLAIM,
+        target_url=f"/items/{item.id}",
+    )
 
 
 
