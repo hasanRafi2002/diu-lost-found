@@ -1,6 +1,6 @@
 import uuid
 import enum
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Column, Integer, String, Boolean, DateTime, Enum
@@ -37,10 +37,9 @@ class User(Base):
     is_active = Column(Boolean, default=True)
 
     last_login = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    # ✅ Updated to use lambda with timezone-aware UTC
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
     deleted_at = Column(DateTime, nullable=True)
 
     items = relationship("Item", back_populates="owner", cascade="all, delete-orphan")
-    # items = relationship("Item", back_populates="owner", cascade="all, delete-orphan")
-

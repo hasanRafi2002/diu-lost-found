@@ -1,11 +1,10 @@
+from datetime import datetime, timezone
 from app.services.notification_service import create_notification
 from app.models.notification import NotificationType
-
 
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
-from datetime import datetime
 
 from app.models.claim import Claim, ClaimStatus
 from app.models.item import Item, ItemType, ItemStatus
@@ -69,7 +68,6 @@ def submit_claim(db: Session, item_id: int, claim_in: ClaimCreate, current_user:
 
     db.refresh(claim)
 
-
     verb = "found your lost item" if item.item_type == ItemType.LOST else "submitted a claim on your found item"
     create_notification(
         db,
@@ -79,7 +77,6 @@ def submit_claim(db: Session, item_id: int, claim_in: ClaimCreate, current_user:
         notification_type=NotificationType.CLAIM,
         target_url=f"/items/{item.id}",
     )
-
 
     return claim
 
@@ -124,7 +121,8 @@ def approve_claim(db: Session, claim_id: int, current_user: User) -> Claim:
     if claim.status != ClaimStatus.PENDING:
         raise HTTPException(status_code=400, detail="Claim already reviewed")
 
-    now = datetime.utcnow()
+    # ✅ Use timezone-aware UTC datetime
+    now = datetime.now(timezone.utc)
 
     claim.status = ClaimStatus.APPROVED
     claim.reviewed_by = current_user.id
@@ -173,6 +171,7 @@ def approve_claim(db: Session, claim_id: int, current_user: User) -> Claim:
 
     return claim
 
+
 def reject_claim(db: Session, claim_id: int, current_user: User) -> Claim:
     claim = get_claim_or_404(db, claim_id)
     item = get_item_or_404(db, claim.item_id)
@@ -183,11 +182,11 @@ def reject_claim(db: Session, claim_id: int, current_user: User) -> Claim:
 
     claim.status = ClaimStatus.REJECTED
     claim.reviewed_by = current_user.id
-    claim.reviewed_at = datetime.utcnow()
+    # ✅ Use timezone-aware UTC datetime
+    claim.reviewed_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(claim)
-
 
     create_notification(
         db,
@@ -197,8 +196,6 @@ def reject_claim(db: Session, claim_id: int, current_user: User) -> Claim:
         notification_type=NotificationType.CLAIM,
         target_url=f"/items/{item.id}",
     )
-
-
 
     return claim
 

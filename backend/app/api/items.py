@@ -1,10 +1,5 @@
 from typing import Optional
-
-
-from fastapi import UploadFile, File
-from app.services.upload_service import save_item_image, delete_item_image
-
-from fastapi import APIRouter, Depends, Query
+from fastapi import UploadFile, File, Request, Depends, APIRouter, Query, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database.database import get_db
@@ -15,8 +10,17 @@ from app.schemas.item import (
     ItemCreate, ItemUpdate, ItemResponse, ItemListResponse, ItemStatusUpdate
 )
 from app.services import item_service
+from app.services.upload_service import save_item_image, delete_item_image
+from app.core.rate_limit import RateLimiter
 
 router = APIRouter(prefix="/api/items", tags=["Items"])
+
+# Rate limiter for image uploads: max 20 uploads per user per hour
+upload_rate_limiter = RateLimiter(
+    max_attempts=20,
+    window_seconds=3600,  # 1 hour
+    max_tracked_keys=1000
+)
 
 
 @router.post("", response_model=ItemResponse, status_code=201)
@@ -75,21 +79,41 @@ def update_item(
 async def upload_item_image(
     item_id: int,
     file: UploadFile = File(...),
+    request: Request = None,  # ✅ Added to get client IP
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    item = item_service.get_item_or_404(db, item_id)
-    item_service.check_ownership(item, current_user)
+    # ✅ Rate limit check
+    client_ip = request.client.host if request.client else "unknown"
+    if upload_rate_limiter.is_limited(client_ip):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many upload attempts. Max 20 per hour.",
+            headers={"Retry-After": "3600"},
+        )
+    
+    # Record the attempt
+    upload_rate_limiter.record_attempt(client_ip)
+    
+    try:
+        item = item_service.get_item_or_404(db, item_id)
+        item_service.check_ownership(item, current_user)
 
-    # remove old image if one exists, to avoid orphaned files
-    delete_item_image(item.image_url)
+        # remove old image if one exists, to avoid orphaned files
+        delete_item_image(item.image_url)
 
-    image_url = await save_item_image(file)
-    item.image_url = image_url
-    db.commit()
-    db.refresh(item)
-    return item
-
+        image_url = await save_item_image(file)
+        item.image_url = image_url
+        db.commit()
+        db.refresh(item)
+        return item
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to upload image"
+        )
 
 
 @router.patch("/{item_id}/status", response_model=ItemResponse)

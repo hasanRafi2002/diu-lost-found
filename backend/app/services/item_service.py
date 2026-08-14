@@ -1,4 +1,5 @@
 from typing import Optional
+from datetime import datetime, timezone
 
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
@@ -64,7 +65,7 @@ def list_items(
         query = query.filter(Item.status == ItemStatus.ACTIVE)
     if building:
         query = query.filter(Item.building == building)
-    if search:
+    if search and len(search) <= 100:  # ✅ Added length check to prevent DoS
         like = f"%{search}%"
         query = query.filter(
             or_(Item.title.ilike(like), Item.description.ilike(like))
@@ -111,11 +112,10 @@ def update_item_status(db: Session, item_id: int, new_status: ItemStatus, curren
 
 
 def delete_item(db: Session, item_id: int, current_user: User) -> None:
-    from datetime import datetime
-
     item = get_item_or_404(db, item_id)
     check_ownership(item, current_user)
-    item.deleted_at = datetime.utcnow()
+    # ✅ Use timezone-aware UTC datetime
+    item.deleted_at = datetime.now(timezone.utc)
     db.commit()
 
 

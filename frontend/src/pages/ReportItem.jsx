@@ -1,12 +1,8 @@
-
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { createItem } from "../services/itemService";
 import { getCategories } from "../services/categoryService";
-
-
 import ImageUpload from "../components/ImageUpload";
 
 const BUILDINGS = [
@@ -53,11 +49,21 @@ export default function ReportItem() {
 
     setSubmitting(true);
     try {
+      // ✅ Trim and sanitize all input fields
       const payload = {
-        ...form,
+        title: form.title.trim(),
+        description: form.description.trim(),
+        item_type: form.item_type,
         category_id: form.category_id ? Number(form.category_id) : null,
+        brand: form.brand.trim() || null,
+        color: form.color.trim() || null,
+        building: form.building.trim() || null,
+        floor: form.floor.trim() || null,
+        room: form.room.trim() || null,
+        specific_location: form.specific_location.trim() || null,
         lost_found_date: form.lost_found_date || null,
       };
+      
       const created = await createItem(payload);
       setCreatedItem(created);
       toast.success("Report submitted! Add a photo below (optional).");
@@ -152,8 +158,6 @@ export default function ReportItem() {
           {submitting ? "Submitting..." : createdItem ? "Report Submitted" : "Submit Report"}
         </button>
       </form>
-
-
 
       {createdItem && (
         <div className="bg-white p-6 rounded-lg border border-gray-100 shadow-sm mt-4">
