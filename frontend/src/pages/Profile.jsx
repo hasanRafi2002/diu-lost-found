@@ -23,6 +23,10 @@ import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
 import Footer from "../components/Footer";
 
+function TabPanel({ children, value, index }) {
+  return value === index && <Box>{children}</Box>;
+}
+
 export default function Profile() {
   const { user } = useAuth();
   const theme = useTheme();
@@ -52,8 +56,8 @@ export default function Profile() {
   }
 
   return (
-    <>
-      <Box sx={{ minHeight: "80vh", py: { xs: 4, md: 8 } }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <Box sx={{ py: { xs: 4, md: 8 }, flex: 1 }}>
         <Container maxWidth="md">
           {/* Profile Header */}
           <Card sx={{ p: { xs: 3, md: 4 }, mb: 4 }}>
@@ -63,6 +67,7 @@ export default function Profile() {
                   width: 120,
                   height: 120,
                   fontSize: "3rem",
+                  backgroundColor: theme.palette.primary.main,
                 }}
               >
                 {user?.full_name?.charAt(0).toUpperCase()}
@@ -76,7 +81,7 @@ export default function Profile() {
                   {user?.email}
                 </Typography>
 
-                <Box sx={{ display: "flex", gap: 2 }}>
+                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                   <Button
                     variant="contained"
                     startIcon={<PhotoCameraIcon />}
@@ -110,7 +115,7 @@ export default function Profile() {
           </Paper>
 
           {/* Tab Content */}
-          {tabValue === 0 && (
+          <TabPanel value={tabValue} index={0}>
             <Card sx={{ p: { xs: 3, md: 4 } }}>
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
@@ -186,25 +191,25 @@ export default function Profile() {
                 )}
               </Grid>
             </Card>
-          )}
+          </TabPanel>
 
-          {tabValue === 1 && (
+          <TabPanel value={tabValue} index={1}>
             <Card sx={{ p: { xs: 3, md: 4 } }}>
               <Button variant="outlined" color="error">
                 Change Password
               </Button>
             </Card>
-          )}
+          </TabPanel>
 
-          {tabValue === 2 && (
+          <TabPanel value={tabValue} index={2}>
             <Card sx={{ p: { xs: 3, md: 4 } }}>
               <Typography>Coming soon...</Typography>
             </Card>
-          )}
+          </TabPanel>
         </Container>
       </Box>
 
       <Footer />
-    </>
+    </Box>
   );
 }

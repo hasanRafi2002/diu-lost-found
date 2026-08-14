@@ -14,15 +14,9 @@ import {
   Chip,
   Skeleton,
   useTheme,
+  Stack,
 } from "@mui/material";
-import {
-  Search as SearchIcon,
-  AddCircleOutline as AddIcon,
-  FindInPageOutline as FindIcon,
-  Verified as VerifiedIcon,
-} from "@mui/icons-material";
-import Lottie from "lottie-react";
-import searchAnimation from "../animations/search.json"; // We'll create this
+import { Search as SearchIcon } from "@mui/icons-material";
 import { listItems } from "../services/itemService";
 import Footer from "../components/Footer";
 
@@ -40,7 +34,7 @@ export default function Home() {
   async function loadRecentItems() {
     try {
       const response = await listItems({ page: 1, page_size: 6 });
-      setRecentItems(response.items);
+      setRecentItems(response.items || []);
     } catch (err) {
       console.error("Error loading items:", err);
     } finally {
@@ -56,7 +50,7 @@ export default function Home() {
   }
 
   return (
-    <>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {/* Hero Banner */}
       <Box
         sx={{
@@ -70,7 +64,7 @@ export default function Home() {
           <Grid container spacing={4} alignItems="center">
             <Grid item xs={12} md={6}>
               <Typography
-                variant="h1"
+                variant="h2"
                 sx={{
                   mb: 2,
                   fontSize: { xs: "2.5rem", md: "3.5rem" },
@@ -83,8 +77,9 @@ export default function Home() {
                 variant="h6"
                 sx={{
                   mb: 4,
-                  opacity: 0.9,
+                  opacity: 0.95,
                   fontSize: { xs: "1rem", md: "1.25rem" },
+                  fontWeight: 400,
                 }}
               >
                 Help your DIU community find lost items and reunite belongings with their owners
@@ -97,7 +92,8 @@ export default function Home() {
                 sx={{
                   display: "flex",
                   gap: 1,
-                  mb: 2,
+                  mb: 3,
+                  flexDirection: { xs: "column", sm: "row" },
                 }}
               >
                 <TextField
@@ -105,13 +101,11 @@ export default function Home() {
                   placeholder="Search lost or found items..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  InputProps={{
-                    startAdornment: <SearchIcon sx={{ mr: 1 }} />,
-                  }}
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       backgroundColor: "white",
                       borderRadius: 1,
+                      color: "black",
                     },
                   }}
                 />
@@ -132,9 +126,10 @@ export default function Home() {
                 </Button>
               </Box>
 
-              <Box sx={{ display: "flex", gap: 2 }}>
+              <Box sx={{ display: "flex", gap: 2, flexDirection: { xs: "column", sm: "row" } }}>
                 <Button
                   variant="contained"
+                  size="large"
                   sx={{
                     backgroundColor: theme.palette.secondary.main,
                     color: "white",
@@ -142,10 +137,11 @@ export default function Home() {
                   }}
                   onClick={() => navigate("/report")}
                 >
-                  Report Lost Item
+                  📍 Report Lost Item
                 </Button>
                 <Button
                   variant="outlined"
+                  size="large"
                   sx={{
                     color: "white",
                     borderColor: "white",
@@ -153,17 +149,14 @@ export default function Home() {
                   }}
                   onClick={() => navigate("/report")}
                 >
-                  Report Found Item
+                  ✅ Report Found Item
                 </Button>
               </Box>
             </Grid>
 
-            {/* Animation */}
+            {/* Emoji Section */}
             <Grid item xs={12} md={6} sx={{ textAlign: "center" }}>
-              <Box sx={{ height: { xs: 250, md: 400 } }}>
-                {/* Placeholder - Lottie animation will go here */}
-                <Box sx={{ fontSize: "100px" }}>🔍</Box>
-              </Box>
+              <Box sx={{ fontSize: { xs: "80px", md: "120px" } }}>🔍</Box>
             </Grid>
           </Grid>
         </Container>
@@ -172,94 +165,44 @@ export default function Home() {
       {/* Quick Actions */}
       <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                p: 4,
-                textAlign: "center",
-                cursor: "pointer",
-                transition: "all 0.3s",
-                "&:hover": {
-                  boxShadow: 6,
-                  transform: "translateY(-8px)",
-                },
-              }}
-              onClick={() => navigate("/report")}
-            >
-              <Box sx={{ fontSize: "48px", mb: 2 }}>📍</Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-                Report Lost Item
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                Tell the community about something you lost
-              </Typography>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                p: 4,
-                textAlign: "center",
-                cursor: "pointer",
-                transition: "all 0.3s",
-                "&:hover": {
-                  boxShadow: 6,
-                  transform: "translateY(-8px)",
-                },
-              }}
-              onClick={() => navigate("/report")}
-            >
-              <Box sx={{ fontSize: "48px", mb: 2 }}>✅</Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-                Report Found Item
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                Help return something you found
-              </Typography>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={4}>
-            <Card
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                p: 4,
-                textAlign: "center",
-                cursor: "pointer",
-                transition: "all 0.3s",
-                "&:hover": {
-                  boxShadow: 6,
-                  transform: "translateY(-8px)",
-                },
-              }}
-              onClick={() => navigate("/lost")}
-            >
-              <Box sx={{ fontSize: "48px", mb: 2 }}>🔔</Box>
-              <Typography variant="h5" sx={{ fontWeight: 600, mb: 1 }}>
-                Browse Items
-              </Typography>
-              <Typography variant="body2" color="textSecondary">
-                See all lost & found items posted
-              </Typography>
-            </Card>
-          </Grid>
+          {[
+            { icon: "📍", title: "Report Lost Item", desc: "Tell the community about something you lost" },
+            { icon: "✅", title: "Report Found Item", desc: "Help return something you found" },
+            { icon: "🔔", title: "Browse Items", desc: "See all lost & found items" },
+          ].map((item, i) => (
+            <Grid item xs={12} sm={6} md={4} key={i}>
+              <Card
+                sx={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  p: 4,
+                  textAlign: "center",
+                  cursor: "pointer",
+                  transition: "all 0.3s",
+                  "&:hover": {
+                    boxShadow: 6,
+                    transform: "translateY(-8px)",
+                  },
+                }}
+                onClick={() => navigate(i === 0 || i === 1 ? "/report" : "/lost")}
+              >
+                <Box sx={{ fontSize: "48px", mb: 2 }}>{item.icon}</Box>
+                <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+                  {item.title}
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  {item.desc}
+                </Typography>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
       </Container>
 
       {/* How It Works */}
-      <Box sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1f2937' : '#f9fafb', py: { xs: 6, md: 8 } }}>
+      <Box sx={{ backgroundColor: theme.palette.mode === 'dark' ? '#1e293b' : '#f9fafb', py: { xs: 6, md: 8 } }}>
         <Container maxWidth="lg">
           <Typography variant="h3" sx={{ textAlign: "center", mb: 6, fontWeight: 700 }}>
             How It Works
@@ -267,21 +210,9 @@ export default function Home() {
 
           <Grid container spacing={4}>
             {[
-              {
-                icon: "⚡",
-                title: "Report Quickly",
-                desc: "Post details about lost/found items in seconds with photos",
-              },
-              {
-                icon: "👥",
-                title: "Get Community Help",
-                desc: "Community members verify and claim items",
-              },
-              {
-                icon: "✓",
-                title: "Verify & Reunite",
-                desc: "Approve claims and reunite with owners",
-              },
+              { icon: "⚡", title: "Report Quickly", desc: "Post details about lost/found items in seconds with photos" },
+              { icon: "👥", title: "Get Community Help", desc: "Community members verify and claim items" },
+              { icon: "✓", title: "Verify & Reunite", desc: "Approve claims and reunite with owners" },
             ].map((feature, i) => (
               <Grid item xs={12} md={4} key={i}>
                 <Card sx={{ p: 3, textAlign: "center", height: "100%" }}>
@@ -300,7 +231,7 @@ export default function Home() {
       </Box>
 
       {/* Recent Items */}
-      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 } }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 8 }, flex: 1 }}>
         <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4 }}>
           <Typography variant="h3" sx={{ fontWeight: 700 }}>
             Recent Reports
@@ -342,12 +273,12 @@ export default function Home() {
                   <CardMedia
                     component="img"
                     height="200"
-                    image={item.image_url || "https://via.placeholder.com/400x200"}
+                    image={item.image_url || "https://via.placeholder.com/400x200?text=No+Image"}
                     alt={item.title}
                     sx={{ objectFit: "cover" }}
                   />
                   <CardContent>
-                    <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
+                    <Box sx={{ display: "flex", gap: 1, mb: 1, flexWrap: "wrap" }}>
                       <Chip
                         label={item.item_type}
                         size="small"
@@ -374,7 +305,7 @@ export default function Home() {
         ) : (
           <Paper sx={{ p: 4, textAlign: "center" }}>
             <Typography color="textSecondary">
-              No items reported yet. Be the first to help!
+              No items reported yet. Be the first to help the community!
             </Typography>
           </Paper>
         )}
@@ -382,6 +313,6 @@ export default function Home() {
 
       {/* Footer */}
       <Footer />
-    </>
+    </Box>
   );
 }

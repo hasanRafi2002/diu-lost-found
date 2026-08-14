@@ -1,20 +1,6 @@
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Link,
-  Divider,
-  Stack,
-  useTheme,
-} from "@mui/material";
-import {
-  Facebook as FacebookIcon,
-  Twitter as TwitterIcon,
-  LinkedIn as LinkedInIcon,
-  Email as EmailIcon,
-} from "@mui/icons-material";
+import { Box, Container, Typography, Stack, Link, useTheme } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { Facebook as FacebookIcon, Twitter as TwitterIcon, LinkedIn as LinkedInIcon, Email as EmailIcon } from "@mui/icons-material";
 
 export default function Footer() {
   const navigate = useNavigate();
@@ -22,9 +8,8 @@ export default function Footer() {
 
   return (
     <Box
-      component="footer"
       sx={{
-        backgroundColor: theme.palette.mode === 'dark' ? '#111827' : '#1f2937',
+        backgroundColor: theme.palette.mode === 'dark' ? '#0f172a' : '#1f2937',
         color: 'white',
         mt: 'auto',
         pt: { xs: 6, md: 8 },
@@ -32,19 +17,23 @@ export default function Footer() {
       }}
     >
       <Container maxWidth="lg">
-        <Grid container spacing={4} sx={{ mb: 4 }}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={4}
+          sx={{ mb: 4 }}
+        >
           {/* About */}
-          <Grid item xs={12} sm={6} md={3}>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
-              DIU Lost & Found
+              🔍 DIU Lost & Found
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.8 }}>
               Helping our DIU community reunite with lost items and support each other.
             </Typography>
-          </Grid>
+          </Box>
 
           {/* Quick Links */}
-          <Grid item xs={12} sm={6} md={3}>
+          <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
               Quick Links
             </Typography>
@@ -56,6 +45,7 @@ export default function Footer() {
                   color: "inherit",
                   opacity: 0.8,
                   "&:hover": { opacity: 1 },
+                  textDecoration: 'none',
                 }}
               >
                 Lost Items
@@ -67,6 +57,7 @@ export default function Footer() {
                   color: "inherit",
                   opacity: 0.8,
                   "&:hover": { opacity: 1 },
+                  textDecoration: 'none',
                 }}
               >
                 Found Items
@@ -78,15 +69,16 @@ export default function Footer() {
                   color: "inherit",
                   opacity: 0.8,
                   "&:hover": { opacity: 1 },
+                  textDecoration: 'none',
                 }}
               >
                 Report Item
               </Link>
             </Stack>
-          </Grid>
+          </Box>
 
           {/* Support */}
-          <Grid item xs={12} sm={6} md={3}>
+          <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
               Support
             </Typography>
@@ -98,6 +90,7 @@ export default function Footer() {
                   color: "inherit",
                   opacity: 0.8,
                   "&:hover": { opacity: 1 },
+                  textDecoration: 'none',
                 }}
               >
                 Contact Us
@@ -109,38 +102,37 @@ export default function Footer() {
                   color: "inherit",
                   opacity: 0.8,
                   "&:hover": { opacity: 1 },
+                  textDecoration: 'none',
                 }}
               >
                 Email Support
               </Link>
             </Stack>
-          </Grid>
+          </Box>
 
           {/* Social */}
-          <Grid item xs={12} sm={6} md={3}>
+          <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, mb: 2 }}>
               Follow Us
             </Typography>
             <Stack direction="row" spacing={2}>
-              <Link href="#" color="inherit" sx={{ opacity: 0.8, "&:hover": { opacity: 1 } }}>
+              <Link href="#" color="inherit" sx={{ opacity: 0.8, "&:hover": { opacity: 1 }, display: 'flex' }}>
                 <FacebookIcon />
               </Link>
-              <Link href="#" color="inherit" sx={{ opacity: 0.8, "&:hover": { opacity: 1 } }}>
+              <Link href="#" color="inherit" sx={{ opacity: 0.8, "&:hover": { opacity: 1 }, display: 'flex' }}>
                 <TwitterIcon />
               </Link>
-              <Link href="#" color="inherit" sx={{ opacity: 0.8, "&:hover": { opacity: 1 } }}>
+              <Link href="#" color="inherit" sx={{ opacity: 0.8, "&:hover": { opacity: 1 }, display: 'flex' }}>
                 <LinkedInIcon />
               </Link>
-              <Link href="mailto:support@diu.edu.bd" color="inherit" sx={{ opacity: 0.8, "&:hover": { opacity: 1 } }}>
+              <Link href="mailto:support@diu.edu.bd" color="inherit" sx={{ opacity: 0.8, "&:hover": { opacity: 1 }, display: 'flex' }}>
                 <EmailIcon />
               </Link>
             </Stack>
-          </Grid>
-        </Grid>
+          </Box>
+        </Stack>
 
-        <Divider sx={{ backgroundColor: "rgba(255,255,255,0.2)", mb: 3 }} />
-
-        <Box sx={{ textAlign: "center" }}>
+        <Box sx={{ borderTop: "1px solid rgba(255,255,255,0.2)", pt: 3, textAlign: "center" }}>
           <Typography variant="body2" sx={{ opacity: 0.8 }}>
             &copy; 2024 DIU Lost & Found. All rights reserved.
           </Typography>

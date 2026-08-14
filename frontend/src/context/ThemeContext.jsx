@@ -7,8 +7,12 @@ const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem('theme-mode');
-    return saved ? JSON.parse(saved) : false;
+    try {
+      const saved = localStorage.getItem('theme-mode');
+      return saved ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
   });
 
   const theme = useMemo(
@@ -18,13 +22,18 @@ export function ThemeProvider({ children }) {
 
   const toggleTheme = () => {
     setIsDarkMode((prev) => {
-      localStorage.setItem('theme-mode', JSON.stringify(!prev));
-      return !prev;
+      const newValue = !prev;
+      try {
+        localStorage.setItem('theme-mode', JSON.stringify(newValue));
+      } catch {
+        // Ignore if localStorage is not available
+      }
+      return newValue;
     });
   };
 
   return (
-    <ThemeContext.Provider value={{ isDarkMode, toggleTheme }}>
+    <ThemeContext.Provider value={{ isDarkMode, toggleTheme, setIsDarkMode }}>
       <MuiThemeProvider theme={theme}>
         <CssBaseline />
         {children}

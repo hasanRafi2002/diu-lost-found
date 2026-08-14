@@ -7,8 +7,8 @@ import {
   Button,
   Card,
   Grid,
-  Paper,
   Stack,
+  useTheme,
 } from "@mui/material";
 import {
   Email as EmailIcon,
@@ -19,6 +19,7 @@ import toast from "react-hot-toast";
 import Footer from "../components/Footer";
 
 export default function Contact() {
+  const theme = useTheme();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -49,8 +50,8 @@ export default function Contact() {
   }
 
   return (
-    <>
-      <Box sx={{ minHeight: "80vh", py: { xs: 4, md: 8 } }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
+      <Box sx={{ py: { xs: 4, md: 8 }, flex: 1 }}>
         <Container maxWidth="lg">
           {/* Header */}
           <Box sx={{ textAlign: "center", mb: 8 }}>
@@ -166,6 +167,6 @@ export default function Contact() {
       </Box>
 
       <Footer />
-    </>
+    </Box>
   );
 }
