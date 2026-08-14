@@ -193,9 +193,6 @@ def reject_claim(db: Session, claim_id: int, current_user: User) -> Claim:
     # ✅ Use timezone-aware UTC datetime
     claim.reviewed_at = datetime.now(timezone.utc)
 
-    db.commit()
-    db.refresh(claim)
-
     create_notification(
         db,
         user_id=claim.claimant_id,
@@ -204,6 +201,9 @@ def reject_claim(db: Session, claim_id: int, current_user: User) -> Claim:
         notification_type=NotificationType.CLAIM,
         target_url=f"/items/{item.id}",
     )
+
+    db.commit()
+    db.refresh(claim)
 
     return claim
 

@@ -93,3 +93,20 @@ export function resolveImageUrl(imageUrl) {
   const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
   return `${baseUrl}${imageUrl}`;
 }
+
+// Alias for listItems — keeps naming consistent with useItemList.js
+export async function getItems(params = {}) {
+  return listItems(params);
+}
+
+// Fetches the current user's own reported items (My Reports page)
+export async function getMyReports({ page = 1, page_size = 12 } = {}) {
+  try {
+    const params = new URLSearchParams({ page, page_size });
+    const response = await api.get(`/api/items/my-reports?${params.toString()}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching my reports:', error);
+    throw error;
+  }
+}
