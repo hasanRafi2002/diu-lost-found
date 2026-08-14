@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 import { useAuth } from "../context/AuthContext";
+import LoadingSpinner from "../components/loaders/LoadingSpinner";
 import { getItem, deleteItem, updateItemStatus } from "../services/itemService";
 import { getItemClaims } from "../services/claimService";
 import ClaimForm from "../components/ClaimForm";
@@ -94,7 +95,7 @@ export default function ItemDetails() {
   }
 
   if (loading) {
-    return <div className="max-w-3xl mx-auto px-4 py-12 text-gray-400">Loading...</div>;
+    return <LoadingSpinner message="Loading..." minHeight="300px" />;
   }
 
   if (!item) return null;

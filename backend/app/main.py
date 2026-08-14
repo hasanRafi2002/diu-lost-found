@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api import auth, items, categories, claims, notifications, admin
+from app.api import auth, items, categories, claims, notifications, admin, users
 from app.middleware import add_security_headers
 
 # Get allowed origins from environment or use default
@@ -29,6 +29,7 @@ app.include_router(categories.router)
 app.include_router(claims.router)
 app.include_router(notifications.router)
 app.include_router(admin.router)
+app.include_router(users.router)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 

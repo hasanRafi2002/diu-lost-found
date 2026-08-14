@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.dependencies import require_admin
 from app.models.user import User
-from app.schemas.admin import DashboardStats
+from app.schemas.admin import DashboardStats, UserListResponse
 from app.schemas.user import UserResponse
 from app.schemas.item import ItemResponse, ItemListResponse
 from app.services import admin_service
@@ -20,15 +20,15 @@ def dashboard_stats(
     return admin_service.get_dashboard_stats(db)
 
 
-@router.get("/users", response_model=list[UserResponse])
+@router.get("/users", response_model=UserListResponse)
 def list_users(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
     _admin: User = Depends(require_admin),
 ):
-    _, users = admin_service.list_all_users(db, page, page_size)
-    return users
+    total, users = admin_service.list_all_users(db, page, page_size)
+    return UserListResponse(total=total, page=page, page_size=page_size, users=users)
 
 
 @router.get("/items", response_model=ItemListResponse)

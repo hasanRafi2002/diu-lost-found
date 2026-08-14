@@ -19,6 +19,12 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=8, max_length=72)
 
 
+class ProfileUpdate(BaseModel):
+    full_name: Optional[str] = Field(None, min_length=2, max_length=100)
+    department: Optional[str] = Field(None, max_length=100)
+    phone: Optional[str] = Field(None, max_length=20)
+
+
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
 

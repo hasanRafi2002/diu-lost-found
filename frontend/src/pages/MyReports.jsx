@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { getMyReports } from "../services/itemService";
 import ItemCard from "../components/ItemCard";
+import ItemCardSkeleton from "../components/loaders/ItemCardSkeleton";
 
 export default function MyReports() {
   const [items, setItems] = useState([]);
@@ -29,7 +30,9 @@ export default function MyReports() {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">My Reports</h1>
 
       {loading ? (
-        <p className="text-gray-400">Loading...</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[1, 2, 3, 4, 5, 6].map((i) => <ItemCardSkeleton key={i} />)}
+        </div>
       ) : items.length === 0 ? (
         <p className="text-gray-400">You haven't reported any items yet.</p>
       ) : (

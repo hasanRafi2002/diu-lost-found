@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import {
   Box,
   Container,
@@ -20,11 +21,12 @@ import Footer from "../components/Footer";
 
 export default function Contact() {
   const theme = useTheme();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    subject: "",
-    message: "",
+    subject: location.state?.prefillMessage ? "Message from chat widget" : "",
+    message: location.state?.prefillMessage || "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -65,7 +67,7 @@ export default function Contact() {
 
           <Grid container spacing={4}>
             {/* Contact Info */}
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               <Stack spacing={3}>
                 {[
                   {
@@ -104,7 +106,7 @@ export default function Contact() {
             </Grid>
 
             {/* Contact Form */}
-            <Grid item xs={12} md={8}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <Card sx={{ p: { xs: 3, md: 4 } }}>
                 <Box component="form" onSubmit={handleSubmit}>
                   <TextField

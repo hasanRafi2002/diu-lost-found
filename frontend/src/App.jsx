@@ -5,6 +5,7 @@ import { Box, Container } from "@mui/material";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import Navbar from "./components/Navbar";
+import ChatWidget from "./components/ChatWidget";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Pages
@@ -26,6 +27,7 @@ function AppContent() {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <Navbar />
+      <ChatWidget />
       <Toaster position="top-right" />
       
       <Box sx={{ flex: 1 }}>

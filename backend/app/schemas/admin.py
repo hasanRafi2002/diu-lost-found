@@ -1,5 +1,9 @@
 from pydantic import BaseModel
 
+from app.schemas.user import UserResponse
+
+from app.schemas.user import UserResponse
+
 
 class DashboardStats(BaseModel):
     total_users: int
@@ -14,3 +18,17 @@ class DashboardStats(BaseModel):
 
 class UserRoleUpdate(BaseModel):
     role: str
+
+
+class UserListResponse(BaseModel):
+    total: int
+    page: int
+    page_size: int
+    users: list["UserResponse"]
+
+
+class UserListResponse(BaseModel):
+    total: int
+    page: int
+    page_size: int
+    users: list["UserResponse"]

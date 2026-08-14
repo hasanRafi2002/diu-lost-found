@@ -12,6 +12,9 @@ from app.core.config import settings
 UPLOAD_DIR = Path("uploads/items")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+AVATAR_DIR = Path("uploads/avatars")
+AVATAR_DIR.mkdir(parents=True, exist_ok=True)
+
 ALLOWED_TYPES = {
     image_type.strip().lower()
     for image_type in settings.ALLOWED_IMAGE_TYPES.split(",")
@@ -34,7 +37,7 @@ def _get_output_format(content_type: str) -> str:
     return "JPEG"
 
 
-async def save_item_image(file: UploadFile) -> str:
+async def _process_and_save(file: UploadFile, dest_dir: Path, url_prefix: str) -> str:
     content_type = (file.content_type or "").lower()
 
     # First layer: reject unsupported client-declared MIME types.
@@ -159,7 +162,7 @@ async def save_item_image(file: UploadFile) -> str:
     }[output_format]
 
     filename = f"{uuid.uuid4().hex}{extension}"
-    filepath = UPLOAD_DIR / filename
+    filepath = dest_dir / filename
 
     try:
         with open(filepath, "wb") as output_file:
@@ -170,7 +173,7 @@ async def save_item_image(file: UploadFile) -> str:
             detail="Unable to save uploaded image.",
         )
 
-    return f"/uploads/items/{filename}"
+    return f"{url_prefix}/{filename}"
 
 
 def delete_item_image(image_url: str | None) -> None:
@@ -189,3 +192,11 @@ def delete_item_image(image_url: str | None) -> None:
             # Do not turn an already-completed database operation
             # into a failed request because an old image could not be removed.
             pass
+
+
+async def save_item_image(file: UploadFile) -> str:
+    return await _process_and_save(file, UPLOAD_DIR, "/uploads/items")
+
+
+async def save_avatar_image(file: UploadFile) -> str:
+    return await _process_and_save(file, AVATAR_DIR, "/uploads/avatars")

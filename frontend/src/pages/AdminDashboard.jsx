@@ -1,29 +1,35 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
+import { Pagination, Box, Chip } from "@mui/material";
 import { getDashboardStats, getAllUsers, deactivateUser, reactivateUser } from "../services/adminService";
+import LoadingSpinner from "../components/loaders/LoadingSpinner";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
+  const pageSize = 10;
 
-  useEffect(() => {
-    load();
-  }, []);
-
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const [statsData, usersData] = await Promise.all([
         getDashboardStats(),
-        getAllUsers({ page: 1, page_size: 50 }),
+        getAllUsers({ page, page_size: pageSize }),
       ]);
       setStats(statsData);
-      setUsers(usersData);
+      setUsers(usersData.users);
+      setTotal(usersData.total);
     } finally {
       setLoading(false);
     }
-  }
+  }, [page]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   async function handleToggleActive(user) {
     try {
@@ -40,8 +46,10 @@ export default function AdminDashboard() {
     }
   }
 
-  if (loading) {
-    return <div className="max-w-6xl mx-auto px-4 py-12 text-gray-400">Loading...</div>;
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  if (loading && !stats) {
+    return <LoadingSpinner message="Loading dashboard..." />;
   }
 
   return (
@@ -59,9 +67,13 @@ export default function AdminDashboard() {
         <StatCard label="Pending Claims" value={stats.total_pending_claims} />
       </div>
 
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">Users</h2>
-      <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-800">Users</h2>
+        <Chip label={`${total} total`} size="small" variant="outlined" />
+      </div>
+
+      <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-x-auto">
+        <table className="w-full text-sm min-w-[640px]">
           <thead className="bg-gray-50 text-gray-500 text-left">
             <tr>
               <th className="px-4 py-3">Name</th>
@@ -74,21 +86,21 @@ export default function AdminDashboard() {
           <tbody>
             {users.map((u) => (
               <tr key={u.id} className="border-t border-gray-50">
-                <td className="px-4 py-3 text-gray-800">{u.full_name}</td>
-                <td className="px-4 py-3 text-gray-500">{u.email}</td>
+                <td className="px-4 py-3 text-gray-800 whitespace-nowrap">{u.full_name}</td>
+                <td className="px-4 py-3 text-gray-500 whitespace-nowrap">{u.email}</td>
                 <td className="px-4 py-3">
                   <span className="text-xs font-semibold px-2 py-0.5 rounded bg-gray-100 text-gray-600">
                     {u.role}
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs font-semibold px-2 py-0.5 rounded ${
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded whitespace-nowrap ${
                     u.is_active ? "bg-green-100 text-green-700" : "bg-red-100 text-red-600"
                   }`}>
                     {u.is_active ? "Active" : "Deactivated"}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 whitespace-nowrap">
                   {u.role !== "ADMIN" && (
                     <button
                       onClick={() => handleToggleActive(u)}
@@ -103,6 +115,17 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 3 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(e, value) => setPage(value)}
+            color="primary"
+          />
+        </Box>
+      )}
     </div>
   );
 }
