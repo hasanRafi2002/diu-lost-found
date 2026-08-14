@@ -68,7 +68,12 @@ def submit_claim(db: Session, item_id: int, claim_in: ClaimCreate, current_user:
 
     db.refresh(claim)
 
+    # ✅ FIX: Fetch item owner info for notification
+    item_owner = db.query(User).filter(User.id == item.user_id).first()
+    
     verb = "found your lost item" if item.item_type == ItemType.LOST else "submitted a claim on your found item"
+    
+    # ✅ FIX: Send notification to item owner
     create_notification(
         db,
         user_id=item.user_id,
@@ -77,6 +82,9 @@ def submit_claim(db: Session, item_id: int, claim_in: ClaimCreate, current_user:
         notification_type=NotificationType.CLAIM,
         target_url=f"/items/{item.id}",
     )
+    
+    # ✅ FIX: Commit after notification is created
+    db.commit()
 
     return claim
 

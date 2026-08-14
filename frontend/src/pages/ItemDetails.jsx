@@ -20,6 +20,7 @@ export default function ItemDetails() {
 
   const isOwner = isAuthenticated && item && user?.id === item.user_id;
 
+  // ✅ FIX: Separate function to load item
   const loadItem = useCallback(async () => {
     try {
       const data = await getItem(id);
@@ -32,30 +33,37 @@ export default function ItemDetails() {
     }
   }, [id, navigate]);
 
-  const loadClaims = useCallback(async (ownerFlag) => {
-    if (!ownerFlag) return;
+  // ✅ FIX: Separate function to load claims (always try)
+  const loadClaims = useCallback(async (itemData) => {
+    if (!itemData) return;
+    if (!isAuthenticated || user?.id !== itemData.user_id) return;
+    
     try {
-      const data = await getItemClaims(id);
+      const data = await getItemClaims(itemData.id);
       setClaims(data);
-    } catch {
-      // silently ignore — not owner or not authorized
+    } catch (err) {
+      // Silently fail if not owner
+      setClaims([]);
     }
-  }, [id]);
+  }, [isAuthenticated, user?.id]);
 
+  // ✅ FIX: Load on mount with proper dependencies
   useEffect(() => {
-    (async () => {
+    const loadData = async () => {
       setLoading(true);
       const data = await loadItem();
-      if (data && isAuthenticated && user?.id === data.user_id) {
-        await loadClaims(true);
+      if (data) {
+        await loadClaims(data);
       }
       setLoading(false);
-    })();
-  }, [id]);
+    };
+    
+    loadData();
+  }, [id, loadItem, loadClaims]);
 
   async function refreshAfterClaimChange() {
     const data = await loadItem();
-    if (data) await loadClaims(true);
+    if (data) await loadClaims(data);
   }
 
   async function handleDelete() {
@@ -153,15 +161,11 @@ export default function ItemDetails() {
             </div>
           )}
 
-
-
           {!isOwner && isAuthenticated && item.status === "ACTIVE" && (
             <div className="mt-8 pt-6 border-t border-gray-100">
               <ClaimForm itemId={item.id} itemType={item.item_type} onSubmitted={refreshAfterClaimChange} />
             </div>
           )}
-
-
 
           {!isAuthenticated && item.status === "ACTIVE" && (
             <div className="mt-8 pt-6 border-t border-gray-100 text-sm text-gray-500">
@@ -171,18 +175,18 @@ export default function ItemDetails() {
         </div>
       </div>
 
-
       {isOwner && (
         <div className="mt-6">
           <h2 className="font-semibold text-gray-800 mb-3">
             {item.item_type === "LOST" ? "People who say they found this" : "Claims on this item"}
           </h2>
-          <ClaimsPanel claims={claims} itemType={item.item_type} onChanged={refreshAfterClaimChange} />
+          {claims.length > 0 ? (
+            <ClaimsPanel claims={claims} itemType={item.item_type} onChanged={refreshAfterClaimChange} />
+          ) : (
+            <p className="text-gray-500 text-sm">No claims yet</p>
+          )}
         </div>
       )}
-
-
-
     </div>
   );
 }
