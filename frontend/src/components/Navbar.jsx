@@ -1,59 +1,177 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import {
+  AppBar,
+  Toolbar,
+  Box,
+  Button,
+  IconButton,
+  Menu,
+  MenuItem,
+  Badge,
+  Avatar,
+  useTheme,
+  useMediaQuery,
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+} from "@mui/material";
+import {
+  Menu as MenuIcon,
+  Close as CloseIcon,
+  DarkMode as DarkModeIcon,
+  LightMode as LightModeIcon,
+  Notifications as NotificationsIcon,
+  Search as SearchIcon,
+} from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import NotificationBell from "./NotificationBell";
+import { useTheme as useThemeContext } from "../context/ThemeContext";
 
 export default function Navbar() {
-  const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const { user, logout, isAuthenticated } = useAuth();
+  const { isDarkMode, toggleTheme } = useThemeContext();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [notificationsAnchor, setNotificationsAnchor] = useState(null);
 
-  function handleLogout() {
-    logout();
-    navigate("/login");
-  }
+  const menuItems = [
+    { label: "Lost Items", path: "/lost", icon: "📍" },
+    { label: "Found Items", path: "/found", icon: "✅" },
+    { label: "Report Item", path: "/report", icon: "➕" },
+    { label: "Contact", path: "/contact", icon: "📞" },
+  ];
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-100">
-      <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="text-xl font-bold text-primary-600">
-          DIU Lost & Found
-        </Link>
+    <AppBar position="sticky" elevation={1}>
+      <Toolbar sx={{ py: 1 }}>
+        {/* Logo */}
+        <Box
+          onClick={() => navigate("/")}
+          sx={{
+            fontWeight: 700,
+            fontSize: "1.5rem",
+            cursor: "pointer",
+            mr: 4,
+            background: "linear-gradient(135deg, #fff 0%, #e0e7ff 100%)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+          }}
+        >
+          🔍 DIU Lost & Found
+        </Box>
 
-        <div className="flex items-center gap-6 text-sm font-medium text-gray-600">
-          <Link to="/lost" className="hover:text-primary-600">Lost Items</Link>
-          <Link to="/found" className="hover:text-primary-600">Found Items</Link>
+        {/* Desktop Navigation */}
+        {!isMobile && (
+          <Box sx={{ display: "flex", gap: 1, flex: 1 }}>
+            {menuItems.map((item) => (
+              <Button
+                key={item.path}
+                color="inherit"
+                onClick={() => navigate(item.path)}
+                sx={{ textTransform: "none", fontSize: "1rem" }}
+              >
+                {item.icon} {item.label}
+              </Button>
+            ))}
+          </Box>
+        )}
 
+        <Box sx={{ display: "flex", gap: 1, ml: "auto" }}>
+          {/* Theme Toggle */}
+          <IconButton onClick={toggleTheme} color="inherit">
+            {isDarkMode ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
+
+          {/* Notifications */}
+          {isAuthenticated && (
+            <IconButton color="inherit" onClick={(e) => setNotificationsAnchor(e.currentTarget)}>
+              <Badge badgeContent={3} color="error">
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+          )}
+
+          {/* User Menu */}
           {isAuthenticated ? (
             <>
-                  <Link to="/report" className="hover:text-primary-600">Report Item</Link>
-                  <Link to="/my-reports" className="hover:text-primary-600">My Reports</Link>
-                  {user?.role === "ADMIN" && (
-                  <Link to="/admin" className="text-primary-600 font-semibold hover:underline">
-                  Admin
-                  </Link>
-                  )}
-                  <NotificationBell />
-                  <span className="text-gray-400">|</span>
-                  <span className="text-gray-800">{user?.full_name}</span>
-                  <button
-                    onClick={handleLogout}
-                    className="bg-red-50 text-red-600 px-3 py-1.5 rounded-md hover:bg-red-100"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-            <>
-              <Link to="/login" className="hover:text-primary-600">Login</Link>
-              <Link
-                to="/register"
-                className="bg-primary-600 text-white px-4 py-1.5 rounded-md hover:bg-primary-700"
+              <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+                <Avatar sx={{ width: 32, height: 32 }}>
+                  {user?.full_name?.charAt(0).toUpperCase()}
+                </Avatar>
+              </IconButton>
+
+              <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={() => setAnchorEl(null)}
               >
-                Register
-              </Link>
+                <MenuItem onClick={() => { navigate("/profile"); setAnchorEl(null); }}>
+                  Profile
+                </MenuItem>
+                <MenuItem onClick={() => { navigate("/my-reports"); setAnchorEl(null); }}>
+                  My Reports
+                </MenuItem>
+                {user?.role === "ADMIN" && (
+                  <MenuItem onClick={() => { navigate("/admin"); setAnchorEl(null); }}>
+                    Admin Panel
+                  </MenuItem>
+                )}
+                <MenuItem onClick={() => { logout(); setAnchorEl(null); }}>
+                  Logout
+                </MenuItem>
+              </Menu>
             </>
+          ) : (
+            <Button color="inherit" onClick={() => navigate("/login")}>
+              Login
+            </Button>
           )}
-        </div>
-      </div>
-    </nav>
+
+          {/* Mobile Menu */}
+          {isMobile && (
+            <IconButton onClick={() => setMobileOpen(!mobileOpen)} color="inherit">
+              {mobileOpen ? <CloseIcon /> : <MenuIcon />}
+            </IconButton>
+          )}
+        </Box>
+      </Toolbar>
+
+      {/* Mobile Drawer */}
+      <Drawer anchor="right" open={mobileOpen} onClose={() => setMobileOpen(false)}>
+        <Box sx={{ width: 280, p: 2 }}>
+          <List>
+            {menuItems.map((item) => (
+              <ListItem key={item.path} disablePadding>
+                <ListItemButton
+                  onClick={() => {
+                    navigate(item.path);
+                    setMobileOpen(false);
+                  }}
+                >
+                  <ListItemText primary={`${item.icon} ${item.label}`} />
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Drawer>
+
+      {/* Notifications Menu */}
+      <Menu
+        anchorEl={notificationsAnchor}
+        open={Boolean(notificationsAnchor)}
+        onClose={() => setNotificationsAnchor(null)}
+      >
+        <MenuItem>✅ Your claim was approved!</MenuItem>
+        <MenuItem>📍 Someone found your lost item</MenuItem>
+        <MenuItem>💬 New message from admin</MenuItem>
+      </Menu>
+    </AppBar>
   );
 }
