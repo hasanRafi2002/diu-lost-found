@@ -3,6 +3,7 @@ from app.models.notification import NotificationType
 
 
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException, status
 from datetime import datetime
 
@@ -50,7 +51,22 @@ def submit_claim(db: Session, item_id: int, claim_in: ClaimCreate, current_user:
         proof_text=claim_in.proof_text,
     )
     db.add(claim)
-    db.commit()
+
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+
+        # PostgreSQL's partial unique index prevents two concurrent
+        # pending claims for the same user/item.
+        if "uq_claims_pending_item_claimant" in str(exc.orig):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="You already have a pending claim on this item",
+            )
+
+        raise
+
     db.refresh(claim)
 
 
@@ -108,63 +124,54 @@ def approve_claim(db: Session, claim_id: int, current_user: User) -> Claim:
     if claim.status != ClaimStatus.PENDING:
         raise HTTPException(status_code=400, detail="Claim already reviewed")
 
+    now = datetime.utcnow()
+
     claim.status = ClaimStatus.APPROVED
     claim.reviewed_by = current_user.id
-    claim.reviewed_at = datetime.utcnow()
+    claim.reviewed_at = now
 
     item.status = ItemStatus.RESOLVED
 
-    # auto-reject all other pending claims on this item
-    other_claims = (
+    # Reject all other pending claims for this item.
+    (
         db.query(Claim)
         .filter(
             Claim.item_id == item.id,
             Claim.id != claim.id,
             Claim.status == ClaimStatus.PENDING,
         )
-        .all()
+        .update(
+            {
+                Claim.status: ClaimStatus.REJECTED,
+                Claim.reviewed_by: current_user.id,
+                Claim.reviewed_at: now,
+            },
+            synchronize_session=False,
+        )
     )
-    for other in other_claims:
-        other.status = ClaimStatus.REJECTED
-        other.reviewed_by = current_user.id
-        other.reviewed_at = datetime.utcnow()
-
-
-
-
 
     verb = "was confirmed" if item.item_type == ItemType.LOST else "was approved"
+
     create_notification(
         db,
         user_id=claim.claimant_id,
-        title="Your response was confirmed" if item.item_type == ItemType.LOST else "Your claim was approved",
-        message=f"Your submission on '{item.title}' {verb}. You can now contact the reporter.",
+        title=(
+            "Your response was confirmed"
+            if item.item_type == ItemType.LOST
+            else "Your claim was approved"
+        ),
+        message=(
+            f"Your submission on '{item.title}' {verb}. "
+            "You can now contact the reporter."
+        ),
         notification_type=NotificationType.CLAIM,
         target_url=f"/items/{item.id}",
     )
-
-
-
-
 
     db.commit()
     db.refresh(claim)
 
-
-    create_notification(
-        db,
-        user_id=claim.claimant_id,
-        title="Your claim was approved",
-        message=f"Your claim on '{item.title}' was approved. You can now contact the reporter.",
-        notification_type=NotificationType.CLAIM,
-        target_url=f"/items/{item.id}",
-    )
-
-
-
-
     return claim
-
 
 def reject_claim(db: Session, claim_id: int, current_user: User) -> Claim:
     claim = get_claim_or_404(db, claim_id)

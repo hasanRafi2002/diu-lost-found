@@ -23,12 +23,12 @@ def get_current_user(
     if payload is None:
         raise credentials_exception
 
-    email: str | None = payload.get("sub")
-    if email is None:
+    user_uuid: str | None = payload.get("sub")
+    if user_uuid is None:
         raise credentials_exception
 
-    user = db.query(User).filter(User.email == email).first()
-    if user is None:
+    user = db.query(User).filter(User.uuid == user_uuid).first()
+    if user is None or not user.is_active:
         raise credentials_exception
 
     return user
